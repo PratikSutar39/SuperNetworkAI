@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS connections (
 -- Messages table
 CREATE TABLE IF NOT EXISTS messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  conversation_id UUID NOT NULL,
+  conversation_id TEXT NOT NULL,
   sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   recipient_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
@@ -142,3 +142,8 @@ CREATE TRIGGER set_connections_updated_at BEFORE UPDATE ON connections
 
 CREATE TRIGGER set_visibility_settings_updated_at BEFORE UPDATE ON visibility_settings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- Migration: Fix conversation_id type from UUID to TEXT
+-- The conversation_id is auto-generated as "userId1_userId2" (sorted),
+-- which is a TEXT value, not a valid UUID. Run this if the table already exists:
+ALTER TABLE messages ALTER COLUMN conversation_id TYPE TEXT;

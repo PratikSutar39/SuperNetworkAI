@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Send, MessageSquare, ArrowLeft } from "lucide-react";
+import { Send, MessageSquare, ArrowLeft, PenSquare } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
-import type { Conversation, Message } from "@/types";
+import Modal from "@/components/ui/Modal";
+import type { Conversation, Message, Connection, User, Profile } from "@/types";
 import { timeAgo } from "@/lib/utils";
 
 export default function MessagesPage() {
@@ -36,12 +37,16 @@ function MessagesContent() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [newConvModal, setNewConvModal] = useState(false);
+  const [connectedUsers, setConnectedUsers] = useState<(User & { profile?: Profile })[]>([]);
+  const [loadingConnections, setLoadingConnections] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasOpenedTargetUser = useRef(false);
 
   const currentUserId = (session?.user as { id: string })?.id;
 
-  // Open or create a conversation for a target user (from ?user= param)
+  // Open or create a conversation for a target user (from ?user= param or new conv modal)
   const openConversationForUser = useCallback(
     async (otherUserId: string, convos: Conversation[]) => {
       // Check if we already have a conversation with this user
@@ -126,6 +131,7 @@ function MessagesContent() {
 
   async function openConversation(conv: Conversation) {
     setActiveConversation(conv);
+    setSendError(null);
     try {
       const res = await fetch(`/api/messages?conversation_id=${conv.id}`);
       if (res.ok) {
@@ -142,6 +148,7 @@ function MessagesContent() {
     if (!newMessage.trim() || !activeConversation || sending) return;
 
     setSending(true);
+    setSendError(null);
     try {
       const res = await fetch("/api/messages", {
         method: "POST",
@@ -176,12 +183,69 @@ function MessagesContent() {
             )
           );
         }
+      } else {
+        const errorData = await res.json().catch(() => null);
+        setSendError(errorData?.error || "Failed to send message. Please try again.");
+      }
+    } catch {
+      setSendError("Network error. Please check your connection and try again.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleNewConversation() {
+    setNewConvModal(true);
+    setLoadingConnections(true);
+    try {
+      const res = await fetch("/api/connections");
+      if (res.ok) {
+        const data = await res.json();
+        const accepted = (data.connections || []).filter(
+          (c: Connection) => c.status === "accepted"
+        );
+        // Extract the other user from each accepted connection
+        const users = accepted.map((c: Connection) => {
+          if (c.requester_id === currentUserId) {
+            return c.recipient
+              ? { ...c.recipient, profile: c.recipient.profile }
+              : null;
+          }
+          return c.requester
+            ? { ...c.requester, profile: c.requester.profile }
+            : null;
+        }).filter(Boolean) as (User & { profile?: Profile })[];
+
+        // Filter out users who already have conversations
+        const existingUserIds = new Set(conversations.map((c) => c.other_user.id));
+        const newUsers = users.filter((u) => !existingUserIds.has(u.id));
+        setConnectedUsers(newUsers);
       }
     } catch {
       // silently fail
     } finally {
-      setSending(false);
+      setLoadingConnections(false);
     }
+  }
+
+  function handleSelectUser(user: User & { profile?: Profile }) {
+    setNewConvModal(false);
+    const sortedIds = [currentUserId, user.id].sort();
+    const conversationId = `${sortedIds[0]}_${sortedIds[1]}`;
+
+    const newConv: Conversation = {
+      id: conversationId,
+      other_user: {
+        ...user,
+        profile: user.profile || undefined,
+      },
+      last_message: null,
+      unread_count: 0,
+    };
+
+    setActiveConversation(newConv);
+    setMessages([]);
+    setSendError(null);
   }
 
   if (status === "loading") {
@@ -196,9 +260,18 @@ function MessagesContent() {
     <div className="min-h-screen bg-[var(--bg-warm)]">
       <Navbar />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-bold text-[var(--text-dark)] mb-6">
-          Messages
-        </h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-[var(--text-dark)]">
+            Messages
+          </h1>
+          <button
+            onClick={handleNewConversation}
+            className="btn-primary px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"
+          >
+            <PenSquare className="w-4 h-4" />
+            New Message
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ minHeight: "60vh" }}>
           {/* Conversations list */}
@@ -262,6 +335,12 @@ function MessagesContent() {
                 <p className="text-sm text-[var(--text-muted)]">
                   No conversations yet
                 </p>
+                <button
+                  onClick={handleNewConversation}
+                  className="mt-3 text-sm font-medium text-[var(--orange-primary)] hover:underline"
+                >
+                  Start a new conversation
+                </button>
               </div>
             )}
           </Card>
@@ -302,6 +381,16 @@ function MessagesContent() {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ maxHeight: "50vh" }}>
+                  {messages.length === 0 && (
+                    <div className="flex items-center justify-center h-full py-12">
+                      <div className="text-center">
+                        <MessageSquare className="w-10 h-10 text-[var(--text-muted)] mx-auto mb-2 opacity-50" />
+                        <p className="text-sm text-[var(--text-muted)]">
+                          Send a message to start the conversation
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   {messages.map((msg) => {
                     const isOwn = msg.sender_id === currentUserId;
                     return (
@@ -331,6 +420,13 @@ function MessagesContent() {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {/* Send error */}
+                {sendError && (
+                  <div className="px-4 py-2 text-xs text-red-600 bg-red-50 border-t border-red-100">
+                    {sendError}
+                  </div>
+                )}
+
                 {/* Input */}
                 <form
                   onSubmit={handleSend}
@@ -359,12 +455,73 @@ function MessagesContent() {
                   <p className="text-[var(--text-muted)]">
                     Select a conversation to start messaging
                   </p>
+                  <button
+                    onClick={handleNewConversation}
+                    className="mt-3 text-sm font-medium text-[var(--orange-primary)] hover:underline"
+                  >
+                    Or start a new conversation
+                  </button>
                 </div>
               </div>
             )}
           </Card>
         </div>
       </main>
+
+      {/* New Conversation Modal */}
+      <Modal
+        isOpen={newConvModal}
+        onClose={() => setNewConvModal(false)}
+        title="New Message"
+      >
+        <p className="text-sm text-[var(--text-body)] mb-4">
+          Select a connection to start messaging.
+        </p>
+        {loadingConnections ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex gap-3 animate-pulse">
+                <div className="w-10 h-10 rounded-full bg-gray-200" />
+                <div className="flex-1 space-y-2 pt-1">
+                  <div className="h-3 bg-gray-200 rounded w-2/3" />
+                  <div className="h-2 bg-gray-200 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : connectedUsers.length > 0 ? (
+          <div className="space-y-1 max-h-80 overflow-y-auto">
+            {connectedUsers.map((user) => (
+              <button
+                key={user.id}
+                onClick={() => handleSelectUser(user)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--peach-light)] transition-colors text-left"
+              >
+                <Avatar name={user.name} src={user.avatar_url} size="md" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[var(--text-dark)] truncate">
+                    {user.name}
+                  </p>
+                  {user.profile?.headline && (
+                    <p className="text-xs text-[var(--text-muted)] truncate">
+                      {user.profile.headline}
+                    </p>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6">
+            <p className="text-sm text-[var(--text-muted)]">
+              No new connections to message.
+            </p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">
+              Connect with people first to start messaging them.
+            </p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
