@@ -15,6 +15,8 @@ import {
   Linkedin,
   Twitter,
   LinkIcon,
+  Check,
+  X,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Card, { CardTitle } from "@/components/ui/Card";
@@ -23,7 +25,7 @@ import Badge from "@/components/ui/Badge";
 import Avatar from "@/components/ui/Avatar";
 import Modal from "@/components/ui/Modal";
 import Textarea from "@/components/ui/Textarea";
-import type { Profile, User } from "@/types";
+import type { Profile, User, Connection } from "@/types";
 
 export default function PublicProfilePage() {
   const { data: session, status } = useSession();
@@ -38,6 +40,8 @@ export default function PublicProfilePage() {
   const [connectMessage, setConnectMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
+  const [connection, setConnection] = useState<Connection | null>(null);
+  const [accepting, setAccepting] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -69,7 +73,10 @@ export default function PublicProfilePage() {
             (c: { requester_id: string; recipient_id: string; status: string }) =>
               c.requester_id === userId || c.recipient_id === userId
           );
-          if (conn) setConnectionStatus(conn.status);
+          if (conn) {
+            setConnectionStatus(conn.status);
+            setConnection(conn);
+          }
         }
       } catch {
         // silently fail
@@ -105,6 +112,28 @@ export default function PublicProfilePage() {
     }
   }
 
+  async function handleAcceptReject(newStatus: "accepted" | "rejected") {
+    if (!connection) return;
+    setAccepting(true);
+    try {
+      const res = await fetch("/api/connections", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connection_id: connection.id,
+          status: newStatus,
+        }),
+      });
+      if (res.ok) {
+        setConnectionStatus(newStatus);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setAccepting(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--bg-warm)]">
@@ -136,7 +165,8 @@ export default function PublicProfilePage() {
     );
   }
 
-  const isOwnProfile = (session?.user as { id: string })?.id === userId;
+  const currentUserId = (session?.user as { id: string })?.id;
+  const isOwnProfile = currentUserId === userId;
 
   return (
     <div className="min-h-screen bg-[var(--bg-warm)]">
@@ -163,13 +193,40 @@ export default function PublicProfilePage() {
           {!isOwnProfile && (
             <div className="flex gap-2">
               {connectionStatus === "accepted" ? (
-                <Button variant="glass" onClick={() => router.push("/messages")}>
+                <Button
+                  variant="glass"
+                  onClick={() => router.push(`/messages?user=${userId}`)}
+                >
                   <MessageSquare className="w-4 h-4 mr-1.5" />
                   Message
                 </Button>
+              ) : connectionStatus === "pending" &&
+                connection?.recipient_id === currentUserId ? (
+                <>
+                  <Button
+                    variant="primary"
+                    onClick={() => handleAcceptReject("accepted")}
+                    loading={accepting}
+                  >
+                    <Check className="w-4 h-4 mr-1.5" />
+                    Accept
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleAcceptReject("rejected")}
+                    disabled={accepting}
+                  >
+                    <X className="w-4 h-4 mr-1.5" />
+                    Decline
+                  </Button>
+                </>
               ) : connectionStatus === "pending" ? (
                 <Button variant="glass" disabled>
                   Request Pending
+                </Button>
+              ) : connectionStatus === "rejected" ? (
+                <Button variant="glass" disabled>
+                  Request Declined
                 </Button>
               ) : (
                 <Button variant="primary" onClick={() => setConnectModal(true)}>

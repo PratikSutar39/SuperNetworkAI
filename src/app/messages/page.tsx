@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Send, MessageSquare, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Card from "@/components/ui/Card";
@@ -12,8 +12,24 @@ import type { Conversation, Message } from "@/types";
 import { timeAgo } from "@/lib/utils";
 
 export default function MessagesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-2 border-[var(--orange-primary)] border-t-transparent rounded-full" />
+        </div>
+      }
+    >
+      <MessagesContent />
+    </Suspense>
+  );
+}
+
+function MessagesContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const targetUserId = searchParams.get("user");
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -21,8 +37,56 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasOpenedTargetUser = useRef(false);
 
   const currentUserId = (session?.user as { id: string })?.id;
+
+  // Open or create a conversation for a target user (from ?user= param)
+  const openConversationForUser = useCallback(
+    async (otherUserId: string, convos: Conversation[]) => {
+      // Check if we already have a conversation with this user
+      const existingConv = convos.find(
+        (c) => c.other_user.id === otherUserId
+      );
+      if (existingConv) {
+        openConversation(existingConv);
+        return;
+      }
+
+      // No existing conversation - fetch the user's info and create a placeholder
+      try {
+        const res = await fetch(`/api/profile?user_id=${otherUserId}`);
+        if (res.ok) {
+          const data = await res.json();
+          const sortedIds = [currentUserId, otherUserId].sort();
+          const conversationId = `${sortedIds[0]}_${sortedIds[1]}`;
+
+          const newConv: Conversation = {
+            id: conversationId,
+            other_user: {
+              id: data.user.id,
+              name: data.user.name,
+              email: data.user.email,
+              avatar_url: data.user.avatar_url,
+              onboarding_completed: data.user.onboarding_completed,
+              created_at: data.user.created_at,
+              updated_at: data.user.updated_at,
+              profile: data.profile || null,
+            },
+            last_message: null,
+            unread_count: 0,
+          };
+
+          setActiveConversation(newConv);
+          setMessages([]);
+        }
+      } catch {
+        // silently fail
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentUserId]
+  );
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -32,6 +96,7 @@ export default function MessagesPage() {
     if (status === "authenticated") {
       fetchConversations();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, router]);
 
   useEffect(() => {
@@ -43,7 +108,14 @@ export default function MessagesPage() {
       const res = await fetch("/api/messages?type=conversations");
       if (res.ok) {
         const data = await res.json();
-        setConversations(data.conversations || []);
+        const convos = data.conversations || [];
+        setConversations(convos);
+
+        // Auto-open conversation for target user if provided via query param
+        if (targetUserId && !hasOpenedTargetUser.current) {
+          hasOpenedTargetUser.current = true;
+          openConversationForUser(targetUserId, convos);
+        }
       }
     } catch {
       // silently fail
@@ -83,6 +155,27 @@ export default function MessagesPage() {
         const data = await res.json();
         setMessages((prev) => [...prev, data.message]);
         setNewMessage("");
+
+        // Add this conversation to the list if it's new
+        const exists = conversations.some((c) => c.id === activeConversation.id);
+        if (!exists) {
+          setConversations((prev) => [
+            {
+              ...activeConversation,
+              last_message: data.message,
+            },
+            ...prev,
+          ]);
+        } else {
+          // Update last_message in existing conversation
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === activeConversation.id
+                ? { ...c, last_message: data.message }
+                : c
+            )
+          );
+        }
       }
     } catch {
       // silently fail
