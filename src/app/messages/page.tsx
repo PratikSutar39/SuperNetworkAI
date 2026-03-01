@@ -1,0 +1,277 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Send, MessageSquare, ArrowLeft } from "lucide-react";
+import Navbar from "@/components/layout/Navbar";
+import Card from "@/components/ui/Card";
+import Avatar from "@/components/ui/Avatar";
+import Badge from "@/components/ui/Badge";
+import type { Conversation, Message } from "@/types";
+import { timeAgo } from "@/lib/utils";
+
+export default function MessagesPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const currentUserId = (session?.user as { id: string })?.id;
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+    if (status === "authenticated") {
+      fetchConversations();
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  async function fetchConversations() {
+    try {
+      const res = await fetch("/api/messages?type=conversations");
+      if (res.ok) {
+        const data = await res.json();
+        setConversations(data.conversations || []);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function openConversation(conv: Conversation) {
+    setActiveConversation(conv);
+    try {
+      const res = await fetch(`/api/messages?conversation_id=${conv.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data.messages || []);
+      }
+    } catch {
+      // silently fail
+    }
+  }
+
+  async function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newMessage.trim() || !activeConversation || sending) return;
+
+    setSending(true);
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient_id: activeConversation.other_user.id,
+          content: newMessage.trim(),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMessages((prev) => [...prev, data.message]);
+        setNewMessage("");
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setSending(false);
+    }
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-[var(--orange-primary)] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--bg-warm)]">
+      <Navbar />
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        <h1 className="text-2xl font-bold text-[var(--text-dark)] mb-6">
+          Messages
+        </h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ minHeight: "60vh" }}>
+          {/* Conversations list */}
+          <Card
+            variant="strong"
+            className={`p-0 overflow-hidden ${activeConversation ? "hidden md:block" : ""}`}
+          >
+            <div className="p-4 border-b border-white/30">
+              <h2 className="text-sm font-semibold text-[var(--text-dark)]">
+                Conversations
+              </h2>
+            </div>
+            {loading ? (
+              <div className="p-4 space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex gap-3 animate-pulse">
+                    <div className="w-10 h-10 rounded-full bg-gray-200" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-2/3" />
+                      <div className="h-2 bg-gray-200 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : conversations.length > 0 ? (
+              <div className="divide-y divide-white/20">
+                {conversations.map((conv) => (
+                  <button
+                    key={conv.id}
+                    onClick={() => openConversation(conv)}
+                    className={`w-full flex items-center gap-3 p-4 hover:bg-[var(--peach-light)] transition-colors text-left ${
+                      activeConversation?.id === conv.id ? "bg-[var(--peach-light)]" : ""
+                    }`}
+                  >
+                    <Avatar
+                      name={conv.other_user.name}
+                      src={conv.other_user.avatar_url}
+                      size="md"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-[var(--text-dark)] truncate">
+                          {conv.other_user.name}
+                        </span>
+                        {conv.unread_count > 0 && (
+                          <Badge variant="orange">{conv.unread_count}</Badge>
+                        )}
+                      </div>
+                      {conv.last_message && (
+                        <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">
+                          {conv.last_message.content}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <MessageSquare className="w-10 h-10 text-[var(--text-muted)] mx-auto mb-2 opacity-50" />
+                <p className="text-sm text-[var(--text-muted)]">
+                  No conversations yet
+                </p>
+              </div>
+            )}
+          </Card>
+
+          {/* Message thread */}
+          <Card
+            variant="strong"
+            className={`md:col-span-2 p-0 flex flex-col overflow-hidden ${
+              !activeConversation ? "hidden md:flex" : ""
+            }`}
+          >
+            {activeConversation ? (
+              <>
+                {/* Thread header */}
+                <div className="flex items-center gap-3 p-4 border-b border-white/30">
+                  <button
+                    className="md:hidden p-1 rounded-lg hover:bg-gray-100/80"
+                    onClick={() => setActiveConversation(null)}
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <Avatar
+                    name={activeConversation.other_user.name}
+                    src={activeConversation.other_user.avatar_url}
+                    size="sm"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--text-dark)]">
+                      {activeConversation.other_user.name}
+                    </p>
+                    {activeConversation.other_user.profile?.headline && (
+                      <p className="text-xs text-[var(--text-muted)]">
+                        {activeConversation.other_user.profile.headline}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ maxHeight: "50vh" }}>
+                  {messages.map((msg) => {
+                    const isOwn = msg.sender_id === currentUserId;
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
+                            isOwn
+                              ? "bg-gradient-to-r from-[var(--orange-primary)] to-[var(--orange-deep)] text-white rounded-br-md"
+                              : "glass rounded-bl-md text-[var(--text-body)]"
+                          }`}
+                        >
+                          <p>{msg.content}</p>
+                          <p
+                            className={`text-[10px] mt-1 ${
+                              isOwn ? "text-white/70" : "text-[var(--text-muted)]"
+                            }`}
+                          >
+                            {timeAgo(msg.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input */}
+                <form
+                  onSubmit={handleSend}
+                  className="p-4 border-t border-white/30 flex gap-3"
+                >
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type a message..."
+                    className="glass-input flex-1 px-4 py-2.5 text-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newMessage.trim() || sending}
+                    className="btn-primary p-2.5 rounded-xl disabled:opacity-50"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div className="flex items-center justify-center flex-1 p-8">
+                <div className="text-center">
+                  <MessageSquare className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-3 opacity-50" />
+                  <p className="text-[var(--text-muted)]">
+                    Select a conversation to start messaging
+                  </p>
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+}

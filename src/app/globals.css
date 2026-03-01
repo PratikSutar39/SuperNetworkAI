@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --orange-primary: #E8734A;
+  --orange-deep: #D4613A;
+  --peach-light: #FFF5F0;
+  --bg-warm: #FAFAF8;
+  --text-dark: #1A1A1A;
+  --text-body: #4A4A4A;
+  --text-muted: #8A8A8A;
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: rgba(232, 115, 74, 0.08);
+  --glass-border-orange: rgba(232, 115, 74, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text-body);
+  background: #FFFFFF;
+}
+
+/* Liquid Glass base utility */
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    border-radius: 16px;
+  }
+
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    border-radius: 16px;
+  }
+
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 16px var(--glass-shadow);
+    border-radius: 12px;
+  }
+
+  .glass-input {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border-orange);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .glass-input:focus {
+    outline: none;
+    border-color: var(--orange-primary);
+    box-shadow: 0 0 0 3px rgba(232, 115, 74, 0.15);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--orange-primary), var(--orange-deep));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(232, 115, 74, 0.3);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border-orange);
+    border-radius: 12px;
+    padding: 10px 24px;
+    font-weight: 500;
+    color: var(--text-dark);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-glass:hover {
+    background: rgba(255, 245, 240, 0.8);
+    border-color: var(--orange-primary);
+    transform: translateY(-1px);
+  }
+}
+
+/* Lotus Petal Animations */
+@keyframes float-1 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(10px, -20px) rotate(5deg); }
+  50% { transform: translate(-5px, -35px) rotate(-3deg); }
+  75% { transform: translate(15px, -15px) rotate(7deg); }
+}
+
+@keyframes float-2 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(-15px, -10px) rotate(-5deg); }
+  50% { transform: translate(10px, -25px) rotate(4deg); }
+  75% { transform: translate(-10px, -30px) rotate(-6deg); }
+}
+
+@keyframes float-3 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(20px, -15px) rotate(8deg); }
+  66% { transform: translate(-10px, -30px) rotate(-4deg); }
+}
+
+.lotus-petal {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.12;
+}
+
+.lotus-petal-1 { animation: float-1 25s ease-in-out infinite; }
+.lotus-petal-2 { animation: float-2 30s ease-in-out infinite; }
+.lotus-petal-3 { animation: float-3 20s ease-in-out infinite; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(232, 115, 74, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(232, 115, 74, 0.4);
+}
