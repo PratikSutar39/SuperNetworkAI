@@ -2,6 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getServiceSupabase } from "@/lib/supabase";
+import crypto from "crypto";
+
+// Generate a deterministic UUID v5 from two user IDs.
+// This produces a valid UUID that works with both UUID and TEXT columns.
+function generateConversationId(userId1: string, userId2: string): string {
+  const sorted = [userId1, userId2].sort();
+  const name = `${sorted[0]}_${sorted[1]}`;
+
+  // UUID v5: SHA-1 hash with a namespace
+  const NAMESPACE = Buffer.from("6ba7b8109dad11d180b400c04fd430c8", "hex");
+  const nameBytes = Buffer.from(name, "utf8");
+
+  const hash = crypto
+    .createHash("sha1")
+    .update(Buffer.concat([NAMESPACE, nameBytes]))
+    .digest();
+
+  // Set version to 5
+  hash[6] = (hash[6] & 0x0f) | 0x50;
+  // Set variant to RFC 4122
+  hash[8] = (hash[8] & 0x3f) | 0x80;
+
+  const hex = hash.toString("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -228,9 +253,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Auto-generate conversation_id from sorted user IDs
-    const sortedIds = [userId, recipient_id].sort();
-    const conversation_id = `${sortedIds[0]}_${sortedIds[1]}`;
+    // Find existing conversation or generate a new deterministic UUID
+    let conversation_id: string;
+
+    const { data: existingMessages } = await supabase
+      .from("messages")
+      .select("conversation_id")
+      .or(
+        `and(sender_id.eq.${userId},recipient_id.eq.${recipient_id}),and(sender_id.eq.${recipient_id},recipient_id.eq.${userId})`
+      )
+      .limit(1);
+
+    if (existingMessages && existingMessages.length > 0) {
+      conversation_id = existingMessages[0].conversation_id;
+    } else {
+      conversation_id = generateConversationId(userId, recipient_id);
+    }
 
     // Insert the message
     const { data: message, error: messageError } = await supabase
@@ -247,8 +285,9 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (messageError) {
+      console.error("Supabase message insert error:", messageError);
       return NextResponse.json(
-        { error: "Failed to send message" },
+        { error: `Failed to send message: ${messageError.message}` },
         { status: 500 }
       );
     }

@@ -63,11 +63,9 @@ function MessagesContent() {
         const res = await fetch(`/api/profile?user_id=${otherUserId}`);
         if (res.ok) {
           const data = await res.json();
-          const sortedIds = [currentUserId, otherUserId].sort();
-          const conversationId = `${sortedIds[0]}_${sortedIds[1]}`;
 
           const newConv: Conversation = {
-            id: conversationId,
+            id: `new_${otherUserId}`,
             other_user: {
               id: data.user.id,
               name: data.user.name,
@@ -163,16 +161,15 @@ function MessagesContent() {
         setMessages((prev) => [...prev, data.message]);
         setNewMessage("");
 
-        // Add this conversation to the list if it's new
-        const exists = conversations.some((c) => c.id === activeConversation.id);
-        if (!exists) {
-          setConversations((prev) => [
-            {
-              ...activeConversation,
-              last_message: data.message,
-            },
-            ...prev,
-          ]);
+        // Use the server-generated conversation_id as the real ID
+        const realConvId = data.message.conversation_id;
+        const isNewConv = activeConversation.id.startsWith("new_");
+
+        if (isNewConv) {
+          // Update active conversation with real server ID
+          const updatedConv = { ...activeConversation, id: realConvId, last_message: data.message };
+          setActiveConversation(updatedConv);
+          setConversations((prev) => [updatedConv, ...prev]);
         } else {
           // Update last_message in existing conversation
           setConversations((prev) =>
@@ -230,11 +227,9 @@ function MessagesContent() {
 
   function handleSelectUser(user: User & { profile?: Profile }) {
     setNewConvModal(false);
-    const sortedIds = [currentUserId, user.id].sort();
-    const conversationId = `${sortedIds[0]}_${sortedIds[1]}`;
 
     const newConv: Conversation = {
-      id: conversationId,
+      id: `new_${user.id}`,
       other_user: {
         ...user,
         profile: user.profile || undefined,
