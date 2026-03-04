@@ -2,6 +2,8 @@
 
 An AI-powered networking platform that intelligently matches professionals based on their **Ikigai** — the Japanese concept representing the intersection of what you love, what you're good at, what the world needs, and what you can be paid for.
 
+![SuperNetworkAI Hero Page](public/hero-screenshot.png)
+
 ## Features
 
 - **Ikigai-Based Matching** — Creates meaningful connections beyond just skill overlap by aligning purpose, passion, and profession
