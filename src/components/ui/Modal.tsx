@@ -50,7 +50,7 @@ export default function Modal({
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
       <div
         className={cn(
           "glass-strong relative w-full max-w-lg max-h-[85vh] overflow-y-auto",
@@ -66,7 +66,7 @@ export default function Modal({
           )}
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/5 transition-colors ml-auto"
+            className="p-1.5 rounded-lg hover:bg-gray-100/80 transition-colors ml-auto"
           >
             <X className="w-5 h-5 text-[var(--text-muted)]" />
           </button>

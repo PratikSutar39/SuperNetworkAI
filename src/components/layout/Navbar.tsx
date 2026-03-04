@@ -28,25 +28,27 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="glass-strong sticky top-0 z-40 border-b border-white/5">
+    <nav className="glass-strong sticky top-0 z-40 border-b border-white/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
+          {/* Logo */}
           <Link href={session ? "/dashboard" : "/"} className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
+              <span className="text-white font-bold text-sm">SN</span>
             </div>
             <span className="font-semibold text-[var(--text-dark)] hidden sm:block">
-              SuperNetwork
+              SuperNetworkAI
             </span>
           </Link>
 
+          {/* Desktop Navigation */}
           {session && (
             <div className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-[var(--text-body)] hover:bg-white/5 hover:text-[var(--orange-primary)] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-[var(--text-body)] hover:bg-[var(--peach-light)] hover:text-[var(--orange-primary)] transition-colors"
                 >
                   <link.icon className="w-4 h-4" />
                   {link.label}
@@ -55,41 +57,62 @@ export default function Navbar() {
             </div>
           )}
 
+          {/* Right side */}
           <div className="flex items-center gap-3">
             {session ? (
               <>
-                <Avatar name={session.user?.name || "User"} src={session.user?.image} size="sm" />
+                <Avatar
+                  name={session.user?.name || "User"}
+                  src={session.user?.image}
+                  size="sm"
+                />
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50/80 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sign out</span>
                 </button>
+                {/* Mobile menu toggle */}
                 <button
-                  className="md:hidden p-2 rounded-xl hover:bg-white/5"
+                  className="md:hidden p-2 rounded-xl hover:bg-gray-100/80"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 >
-                  {mobileMenuOpen ? <X className="w-5 h-5 text-[var(--text-dark)]" /> : <Menu className="w-5 h-5 text-[var(--text-dark)]" />}
+                  {mobileMenuOpen ? (
+                    <X className="w-5 h-5" />
+                  ) : (
+                    <Menu className="w-5 h-5" />
+                  )}
                 </button>
               </>
             ) : (
               <div className="flex items-center gap-2">
-                <Link href="/login" className="btn-glass px-4 py-2 text-sm">Log in</Link>
-                <Link href="/register" className="btn-primary px-4 py-2 text-sm">Get Started</Link>
+                <Link
+                  href="/login"
+                  className="btn-glass px-4 py-2 text-sm"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/register"
+                  className="btn-primary px-4 py-2 text-sm"
+                >
+                  Get Started
+                </Link>
               </div>
             )}
           </div>
         </div>
       </div>
 
+      {/* Mobile menu */}
       {mobileMenuOpen && session && (
-        <div className="md:hidden glass-strong border-t border-white/5 p-4 space-y-1">
+        <div className="md:hidden glass-strong border-t border-white/30 p-4 space-y-1">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[var(--text-body)] hover:bg-white/5 hover:text-[var(--orange-primary)] transition-colors"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[var(--text-body)] hover:bg-[var(--peach-light)] hover:text-[var(--orange-primary)] transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               <link.icon className="w-4 h-4" />
@@ -98,7 +121,7 @@ export default function Navbar() {
           ))}
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-colors w-full"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-500 hover:bg-red-50/80 transition-colors w-full"
           >
             <LogOut className="w-4 h-4" />
             Sign out

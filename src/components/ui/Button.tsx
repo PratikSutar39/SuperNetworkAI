@@ -14,8 +14,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const variants = {
       primary: "btn-primary text-white",
       glass: "btn-glass",
-      ghost: "bg-transparent hover:bg-white/5 text-[var(--text-body)] rounded-xl transition-colors",
-      danger: "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition-colors",
+      ghost: "bg-transparent hover:bg-[var(--peach-light)] text-[var(--text-body)] rounded-xl transition-colors",
+      danger: "bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-200 rounded-xl transition-colors",
     };
 
     const sizes = {
@@ -28,7 +28,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center font-medium focus:outline-none focus:ring-2 focus:ring-[var(--orange-primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg-warm)] disabled:opacity-50 disabled:pointer-events-none",
+          "inline-flex items-center justify-center font-medium focus:outline-none focus:ring-2 focus:ring-[var(--orange-primary)] focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
           variants[variant],
           sizes[size],
           className

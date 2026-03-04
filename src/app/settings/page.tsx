@@ -42,11 +42,11 @@ function ToggleRow({
         className={`relative w-11 h-6 rounded-full transition-colors ${
           checked
             ? "bg-gradient-to-r from-[var(--orange-primary)] to-[var(--orange-deep)]"
-            : "bg-white/10"
+            : "bg-gray-200"
         }`}
       >
         <span
-          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-gray-200 rounded-full shadow transition-transform ${
+          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
             checked ? "translate-x-5" : "translate-x-0"
           }`}
         />
@@ -196,7 +196,7 @@ export default function SettingsPage() {
               Save Changes
             </Button>
             {saved && (
-              <span className="text-sm text-green-400 font-medium">
+              <span className="text-sm text-green-600 font-medium">
                 Settings saved!
               </span>
             )}
@@ -220,7 +220,7 @@ export default function SettingsPage() {
               {blockedUsers.map((blocked) => (
                 <div
                   key={blocked.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white/5"
+                  className="flex items-center justify-between p-3 rounded-xl bg-white/40"
                 >
                   <div className="flex items-center gap-3">
                     <Avatar
@@ -244,7 +244,7 @@ export default function SettingsPage() {
               ))}
             </div>
           ) : (
-            <div className="mt-4 p-4 rounded-xl bg-white/5 text-center">
+            <div className="mt-4 p-4 rounded-xl bg-white/40 text-center">
               <EyeOff className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-2 opacity-50" />
               <p className="text-sm text-[var(--text-muted)]">
                 You haven&apos;t blocked anyone

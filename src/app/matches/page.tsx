@@ -120,11 +120,11 @@ export default function MatchesPage() {
             {[1, 2, 3, 4].map((i) => (
               <Card key={i} className="animate-pulse">
                 <div className="flex gap-4">
-                  <div className="w-14 h-14 rounded-full bg-white/10" />
+                  <div className="w-14 h-14 rounded-full bg-gray-200" />
                   <div className="flex-1 space-y-3">
-                    <div className="h-4 bg-white/10 rounded w-1/3" />
-                    <div className="h-3 bg-white/10 rounded w-1/2" />
-                    <div className="h-3 bg-white/10 rounded w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded w-1/3" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                    <div className="h-3 bg-gray-200 rounded w-3/4" />
                   </div>
                 </div>
               </Card>

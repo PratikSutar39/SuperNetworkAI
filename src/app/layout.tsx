@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
+import LotusPetals from "@/components/layout/LotusPetals";
 import { AuthProvider } from "@/components/layout/AuthProvider";
 
 export const metadata: Metadata = {
@@ -16,8 +16,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[var(--bg-warm)] antialiased">
+      <body className="min-h-screen bg-white antialiased">
         <AuthProvider>
+          <LotusPetals />
           <div className="relative z-10">{children}</div>
         </AuthProvider>
       </body>

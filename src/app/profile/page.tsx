@@ -208,7 +208,7 @@ export default function ProfilePage() {
                 { key: "ikigai_world_needs", label: "What the World Needs", color: "border-l-green-400" },
                 { key: "ikigai_paid_for", label: "What I Can Be Paid For", color: "border-l-purple-400" },
               ].map(({ key, label, color }) => (
-                <div key={key} className={`p-4 rounded-xl bg-white/5 border-l-4 ${color}`}>
+                <div key={key} className={`p-4 rounded-xl bg-white/40 border-l-4 ${color}`}>
                   <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
                     {label}
                   </p>

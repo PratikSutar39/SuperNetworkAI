@@ -274,7 +274,7 @@ function MessagesContent() {
             variant="strong"
             className={`p-0 overflow-hidden ${activeConversation ? "hidden md:block" : ""}`}
           >
-            <div className="p-4 border-b border-white/5">
+            <div className="p-4 border-b border-white/30">
               <h2 className="text-sm font-semibold text-[var(--text-dark)]">
                 Conversations
               </h2>
@@ -283,10 +283,10 @@ function MessagesContent() {
               <div className="p-4 space-y-3">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="flex gap-3 animate-pulse">
-                    <div className="w-10 h-10 rounded-full bg-white/10" />
+                    <div className="w-10 h-10 rounded-full bg-gray-200" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-white/10 rounded w-2/3" />
-                      <div className="h-2 bg-white/10 rounded w-1/2" />
+                      <div className="h-3 bg-gray-200 rounded w-2/3" />
+                      <div className="h-2 bg-gray-200 rounded w-1/2" />
                     </div>
                   </div>
                 ))}
@@ -350,9 +350,9 @@ function MessagesContent() {
             {activeConversation ? (
               <>
                 {/* Thread header */}
-                <div className="flex items-center gap-3 p-4 border-b border-white/5">
+                <div className="flex items-center gap-3 p-4 border-b border-white/30">
                   <button
-                    className="md:hidden p-1 rounded-lg hover:bg-white/5"
+                    className="md:hidden p-1 rounded-lg hover:bg-gray-100/80"
                     onClick={() => setActiveConversation(null)}
                   >
                     <ArrowLeft className="w-5 h-5" />
@@ -417,7 +417,7 @@ function MessagesContent() {
 
                 {/* Send error */}
                 {sendError && (
-                  <div className="px-4 py-2 text-xs text-red-400 bg-red-500/10 border-t border-red-500/20">
+                  <div className="px-4 py-2 text-xs text-red-600 bg-red-50 border-t border-red-100">
                     {sendError}
                   </div>
                 )}
@@ -425,7 +425,7 @@ function MessagesContent() {
                 {/* Input */}
                 <form
                   onSubmit={handleSend}
-                  className="p-4 border-t border-white/5 flex gap-3"
+                  className="p-4 border-t border-white/30 flex gap-3"
                 >
                   <input
                     type="text"
@@ -476,10 +476,10 @@ function MessagesContent() {
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex gap-3 animate-pulse">
-                <div className="w-10 h-10 rounded-full bg-white/10" />
+                <div className="w-10 h-10 rounded-full bg-gray-200" />
                 <div className="flex-1 space-y-2 pt-1">
-                  <div className="h-3 bg-white/10 rounded w-2/3" />
-                  <div className="h-2 bg-white/10 rounded w-1/2" />
+                  <div className="h-3 bg-gray-200 rounded w-2/3" />
+                  <div className="h-2 bg-gray-200 rounded w-1/2" />
                 </div>
               </div>
             ))}

@@ -254,7 +254,7 @@ export default function PublicProfilePage() {
                 { val: profile.ikigai_world_needs, label: "What the World Needs", color: "border-l-green-400" },
                 { val: profile.ikigai_paid_for, label: "What They Can Be Paid For", color: "border-l-purple-400" },
               ].map(({ val, label, color }) => (
-                <div key={label} className={`p-4 rounded-xl bg-white/5 border-l-4 ${color}`}>
+                <div key={label} className={`p-4 rounded-xl bg-white/40 border-l-4 ${color}`}>
                   <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
                     {label}
                   </p>

@@ -26,7 +26,7 @@ export default function Avatar({
         src={src}
         alt={name}
         className={cn(
-          "rounded-full object-cover border-2 border-white/10 shadow-sm",
+          "rounded-full object-cover border-2 border-white/60 shadow-sm",
           sizes[size],
           className
         )}
@@ -39,7 +39,7 @@ export default function Avatar({
       className={cn(
         "rounded-full flex items-center justify-center font-semibold",
         "bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] text-white",
-        "border-2 border-white/10 shadow-sm",
+        "border-2 border-white/60 shadow-sm",
         sizes[size],
         className
       )}
