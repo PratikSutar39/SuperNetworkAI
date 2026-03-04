@@ -23,7 +23,7 @@ An AI-powered networking platform that intelligently matches professionals based
 | Styling | Tailwind CSS 3.4 |
 | Authentication | NextAuth 4.24 (Credentials) |
 | Database | Supabase (PostgreSQL) |
-| AI | Together AI API (`openai/gpt-oss-120b`) |
+| AI | OpenRouter API (`openai/gpt-oss-120b`) |
 | Validation | Zod 3.23 |
 | Icons | Lucide React |
 
@@ -103,8 +103,8 @@ supabase/
    | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-side only) |
    | `NEXTAUTH_SECRET` | Random string for signing JWTs (32+ characters) |
    | `NEXTAUTH_URL` | App URL, e.g. `http://localhost:3000` |
-   | `AI_API_KEY` | Together AI API key |
-   | `AI_API_BASE_URL` | `https://api.together.xyz/v1` |
+   | `AI_API_KEY` | OpenRouter API key |
+   | `AI_API_BASE_URL` | `https://openrouter.ai/api` |
    | `AI_MODEL` | `openai/gpt-oss-120b` |
 
 4. **Set up the database**
