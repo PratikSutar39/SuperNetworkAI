@@ -12,17 +12,17 @@ export default function Badge({
   className,
 }: BadgeProps) {
   const variants = {
-    default: "bg-gray-100/80 text-[var(--text-body)] border-gray-200/50",
-    orange: "bg-[var(--peach-light)] text-[var(--orange-primary)] border-[var(--glass-border-orange)]",
-    green: "bg-emerald-50/80 text-emerald-700 border-emerald-200/50",
-    blue: "bg-blue-50/80 text-blue-700 border-blue-200/50",
-    purple: "bg-purple-50/80 text-purple-700 border-purple-200/50",
+    default: "bg-white/5 text-[var(--text-body)] border-white/10",
+    orange: "bg-[var(--orange-primary)]/10 text-blue-300 border-[var(--orange-primary)]/25",
+    green: "bg-emerald-500/10 text-emerald-400 border-emerald-500/25",
+    blue: "bg-blue-500/10 text-blue-300 border-blue-500/25",
+    purple: "bg-purple-500/10 text-purple-300 border-purple-500/25",
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border backdrop-blur-sm",
+        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
         variants[variant],
         className
       )}

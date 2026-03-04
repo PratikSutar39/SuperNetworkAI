@@ -108,7 +108,7 @@ function ProfileCompletionBar({ profile }: { profile: Record<string, unknown> | 
           {pct}%
         </span>
       </div>
-      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
         <div
           className="h-full rounded-full bg-gradient-to-r from-[var(--orange-primary)] to-[var(--orange-deep)] transition-all duration-500"
           style={{ width: `${pct}%` }}
@@ -246,11 +246,11 @@ export default function DashboardPage() {
                 {[1, 2, 3].map((i) => (
                   <Card key={i} className="animate-pulse">
                     <div className="flex gap-4">
-                      <div className="w-14 h-14 rounded-full bg-gray-200" />
+                      <div className="w-14 h-14 rounded-full bg-white/10" />
                       <div className="flex-1 space-y-3">
-                        <div className="h-4 bg-gray-200 rounded w-1/3" />
-                        <div className="h-3 bg-gray-200 rounded w-1/2" />
-                        <div className="h-3 bg-gray-200 rounded w-3/4" />
+                        <div className="h-4 bg-white/10 rounded w-1/3" />
+                        <div className="h-3 bg-white/10 rounded w-1/2" />
+                        <div className="h-3 bg-white/10 rounded w-3/4" />
                       </div>
                     </div>
                   </Card>
@@ -300,7 +300,7 @@ export default function DashboardPage() {
                   {pendingConnections.slice(0, 3).map((conn) => (
                     <div
                       key={conn.id}
-                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/50 cursor-pointer"
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer"
                       onClick={() => router.push(`/profile/${conn.requester_id}`)}
                     >
                       <Avatar
@@ -337,7 +337,7 @@ export default function DashboardPage() {
                   {conversations.slice(0, 3).map((conv) => (
                     <div
                       key={conv.id}
-                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/50 cursor-pointer"
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer"
                       onClick={() => router.push("/messages")}
                     >
                       <Avatar
@@ -385,7 +385,7 @@ export default function DashboardPage() {
                 </h3>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-2 rounded-lg bg-white/40">
+                <div className="text-center p-2 rounded-lg bg-white/5">
                   <div className="text-xl font-bold text-[var(--orange-primary)]">
                     {connections.filter((c) => c.status === "accepted").length}
                   </div>
@@ -393,7 +393,7 @@ export default function DashboardPage() {
                     Connections
                   </div>
                 </div>
-                <div className="text-center p-2 rounded-lg bg-white/40">
+                <div className="text-center p-2 rounded-lg bg-white/5">
                   <div className="text-xl font-bold text-[var(--orange-primary)]">
                     {suggestions.length}
                   </div>

@@ -3,65 +3,65 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   Users,
-  MessageSquare,
   Target,
   Sparkles,
   Shield,
   ArrowRight,
-  Heart,
   Brain,
-  Globe,
-  Briefcase,
+  Zap,
+  ChevronDown,
 } from "lucide-react";
-import Card from "@/components/ui/Card";
 
-function IkigaiVisual() {
+const FLOATING_LOGOS = [
+  { name: "GitHub", x: "8%", y: "18%", delay: 0 },
+  { name: "Google", x: "85%", y: "12%", delay: 0.5 },
+  { name: "Vercel", x: "15%", y: "65%", delay: 1 },
+  { name: "Stripe", x: "78%", y: "58%", delay: 1.5 },
+  { name: "Discord", x: "45%", y: "8%", delay: 2 },
+  { name: "LinkedIn", x: "92%", y: "35%", delay: 0.8 },
+  { name: "Notion", x: "5%", y: "42%", delay: 1.2 },
+  { name: "Figma", x: "65%", y: "72%", delay: 0.3 },
+  { name: "Slack", x: "30%", y: "78%", delay: 1.8 },
+  { name: "X", x: "55%", y: "85%", delay: 0.6 },
+];
+
+function FloatingLogos() {
   return (
-    <div className="relative w-72 h-72 mx-auto">
-      {/* Love circle */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full bg-orange-400/15 border border-orange-300/30 flex items-center justify-center">
-        <div className="text-center mt-6">
-          <Heart className="w-5 h-5 text-orange-500 mx-auto" />
-          <span className="text-[10px] font-medium text-orange-600 mt-0.5 block">
-            What you love
-          </span>
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {FLOATING_LOGOS.map((logo) => (
+        <div
+          key={logo.name}
+          className="absolute w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-[10px] font-medium text-white/20 animate-[float-subtle_8s_ease-in-out_infinite]"
+          style={{
+            left: logo.x,
+            top: logo.y,
+            animationDuration: `${8 + logo.delay * 2}s`,
+            animationDelay: `${logo.delay}s`,
+          }}
+        >
+          {logo.name.slice(0, 2)}
         </div>
-      </div>
-      {/* Good at circle */}
-      <div className="absolute top-1/2 -translate-y-1/2 right-0 w-40 h-40 rounded-full bg-blue-400/15 border border-blue-300/30 flex items-center justify-center">
-        <div className="text-center ml-6">
-          <Brain className="w-5 h-5 text-blue-500 mx-auto" />
-          <span className="text-[10px] font-medium text-blue-600 mt-0.5 block">
-            What you&apos;re good at
-          </span>
-        </div>
-      </div>
-      {/* World needs circle */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full bg-green-400/15 border border-green-300/30 flex items-center justify-center">
-        <div className="text-center mb-6">
-          <Globe className="w-5 h-5 text-green-500 mx-auto" />
-          <span className="text-[10px] font-medium text-green-600 mt-0.5 block">
-            What the world needs
-          </span>
-        </div>
-      </div>
-      {/* Paid for circle */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-0 w-40 h-40 rounded-full bg-purple-400/15 border border-purple-300/30 flex items-center justify-center">
-        <div className="text-center mr-6">
-          <Briefcase className="w-5 h-5 text-purple-500 mx-auto" />
-          <span className="text-[10px] font-medium text-purple-600 mt-0.5 block">
-            What you can be paid for
-          </span>
-        </div>
-      </div>
-      {/* Center - Ikigai */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] flex items-center justify-center shadow-lg">
-        <span className="text-white font-bold text-xs">Ikigai</span>
-      </div>
+      ))}
+    </div>
+  );
+}
+
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-white/5">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between py-5 text-left"
+      >
+        <span className="text-sm font-medium text-[var(--text-dark)]">{q}</span>
+        <ChevronDown className={`w-4 h-4 text-[var(--text-muted)] transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <p className="text-sm text-[var(--text-muted)] pb-5 -mt-2">{a}</p>}
     </div>
   );
 }
@@ -71,9 +71,7 @@ export default function LandingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard");
-    }
+    if (status === "authenticated") router.push("/dashboard");
   }, [status, router]);
 
   if (status === "loading" || status === "authenticated") {
@@ -85,188 +83,151 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       {/* Navbar */}
-      <nav className="glass-strong sticky top-0 z-40 border-b border-white/30">
+      <nav className="glass-strong sticky top-0 z-40 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] flex items-center justify-center">
-                <span className="text-white font-bold text-sm">SN</span>
+                <span className="text-white font-bold text-sm">S</span>
               </div>
-              <span className="font-semibold text-[var(--text-dark)]">
-                SuperNetworkAI
-              </span>
+              <span className="font-semibold text-[var(--text-dark)]">SuperNetwork</span>
             </div>
             <div className="flex items-center gap-2">
-              <Link href="/login" className="btn-glass px-4 py-2 text-sm">
-                Sign in
-              </Link>
-              <Link href="/register" className="btn-primary px-4 py-2 text-sm">
-                Get Started
-              </Link>
+              <Link href="/login" className="btn-glass px-4 py-2 text-sm">Log in</Link>
+              <Link href="/register" className="btn-primary px-4 py-2 text-sm">Get Started</Link>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="py-20 px-4 bg-gradient-to-b from-white to-[var(--bg-warm)]">
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--peach-light)] border border-[var(--glass-border-orange)] text-sm text-[var(--orange-primary)] font-medium mb-6">
+      <section className="relative py-24 px-4 overflow-hidden">
+        <FloatingLogos />
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--orange-primary)]/10 border border-[var(--orange-primary)]/20 text-sm text-[var(--orange-primary)] font-medium mb-8">
             <Sparkles className="w-4 h-4" />
-            AI-Powered Networking
+            AI-Powered Matching
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--text-dark)] leading-tight">
-            Find Your Perfect
+            Stop Scrolling.
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--orange-primary)] to-[var(--orange-deep)]">
-              Cofounder, Teammate, or Client
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--orange-primary)] to-blue-400">
+              Start Matching.
             </span>
           </h1>
           <p className="text-lg text-[var(--text-body)] max-w-2xl mx-auto mt-6">
-            SuperNetworkAI uses your Ikigai — what you love, what you&apos;re good
-            at, what the world needs, and what you can be paid for — to
-            intelligently match you with the right people.
+            SuperNetwork uses your Ikigai — what you love, what you&apos;re good at,
+            what the world needs, and what you can be paid for — to match you
+            with the right cofounders, teammates, and clients.
           </p>
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <Link
-              href="/register"
-              className="btn-primary px-8 py-3 text-base inline-flex items-center gap-2"
-            >
-              Start Networking
+          <div className="flex items-center justify-center gap-4 mt-10">
+            <Link href="/register" className="btn-primary px-8 py-3.5 text-base inline-flex items-center gap-2">
+              Find Your Match — Free
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              href="/login"
-              className="btn-glass px-8 py-3 text-base"
-            >
-              Sign In
-            </Link>
+            <a href="#how-it-works" className="btn-glass px-8 py-3.5 text-base">
+              See How It Works
+            </a>
+          </div>
+          <div className="flex items-center justify-center gap-8 sm:gap-16 mt-16">
+            {[
+              { value: "120+", label: "Early members" },
+              { value: "<10 min", label: "To first match" },
+              { value: "92%", label: "Match accuracy" },
+            ].map(({ value, label }) => (
+              <div key={label} className="text-center">
+                <div className="text-2xl font-bold text-[var(--text-dark)]">{value}</div>
+                <div className="text-xs text-[var(--text-muted)] mt-1">{label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Ikigai Section */}
-      <section className="py-20 px-4 bg-[var(--bg-warm)]">
+      {/* Problem */}
+      <section className="py-20 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-[var(--text-dark)]">200 DMs. Zero right fits.</h2>
+          <p className="text-[var(--text-body)] mt-4 text-lg">
+            Finding the right collaborator shouldn&apos;t feel like shouting into a void.
+            Traditional networking is broken — too noisy, too random, too much effort for too little signal.
+          </p>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-[var(--text-dark)]">
-                Discover Your Ikigai
-              </h2>
-              <p className="text-[var(--text-body)] mt-4">
-                Ikigai is the Japanese concept of finding your purpose — the
-                intersection of what you love, what you&apos;re good at, what the
-                world needs, and what you can be paid for.
-              </p>
-              <p className="text-[var(--text-body)] mt-3">
-                Our onboarding captures your unique Ikigai to power intelligent
-                matching that goes beyond skills alone.
-              </p>
-            </div>
-            <IkigaiVisual />
+          <h2 className="text-3xl font-bold text-[var(--text-dark)] text-center mb-12">How It Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: Target, step: "01", title: "Share what matters", desc: "Complete your Ikigai profile with skills, purpose, and what you\u2019re looking for." },
+              { icon: Search, step: "02", title: "Search in plain English", desc: "Describe your ideal match naturally. Our AI understands context and intent." },
+              { icon: Users, step: "03", title: "Connect with context", desc: "Get ranked matches with AI explanations. Send requests and start messaging." },
+            ].map(({ icon: Icon, step, title, desc }) => (
+              <div key={step} className="glass-strong p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--orange-primary)]/10 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-[var(--orange-primary)]" />
+                  </div>
+                  <span className="text-xs font-mono text-[var(--text-muted)]">{step}</span>
+                </div>
+                <h3 className="font-semibold text-[var(--text-dark)] mb-2">{title}</h3>
+                <p className="text-sm text-[var(--text-body)]">{desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-20 px-4 bg-white">
+      <section className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-[var(--text-dark)] text-center mb-12">
-            How It Works
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <h2 className="text-3xl font-bold text-[var(--text-dark)] text-center mb-12">Why founders choose SuperNetwork</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {[
-              {
-                icon: Target,
-                title: "Share Your Story",
-                desc: "Complete your Ikigai profile with skills, interests, portfolio, and what you&apos;re looking for.",
-              },
-              {
-                icon: Search,
-                title: "AI-Powered Search",
-                desc: "Use natural language to describe your ideal match. Our AI understands context and intent.",
-              },
-              {
-                icon: Users,
-                title: "Connect & Collaborate",
-                desc: "Get ranked suggestions with AI explanations. Send connection requests and start messaging.",
-              },
+              { icon: Sparkles, title: "Transparent AI matching", desc: "Understand why each person is suggested with AI-generated explanations based on Ikigai alignment." },
+              { icon: Zap, title: "Intent-first discovery", desc: "Search by what people want to do, not just what they\u2019ve done. Find collaborators with shared vision." },
+              { icon: Shield, title: "Your data, your rules", desc: "Control profile visibility, block users, and manage exactly what\u2019s shared publicly." },
+              { icon: Brain, title: "AI icebreakers that work", desc: "Get smart conversation starters based on shared interests and complementary skills." },
             ].map(({ icon: Icon, title, desc }) => (
-              <Card key={title} className="text-center hover:shadow-lg transition-shadow">
-                <div className="w-12 h-12 rounded-2xl bg-[var(--peach-light)] flex items-center justify-center mx-auto mb-4">
-                  <Icon className="w-6 h-6 text-[var(--orange-primary)]" />
+              <div key={title} className="glass-subtle flex gap-4 p-6">
+                <div className="w-10 h-10 rounded-xl bg-[var(--orange-primary)]/10 flex items-center justify-center shrink-0">
+                  <Icon className="w-5 h-5 text-[var(--orange-primary)]" />
                 </div>
-                <h3 className="font-semibold text-[var(--text-dark)] mb-2">
-                  {title}
-                </h3>
-                <p className="text-sm text-[var(--text-body)]">{desc}</p>
-              </Card>
+                <div>
+                  <h3 className="font-semibold text-[var(--text-dark)] mb-1">{title}</h3>
+                  <p className="text-sm text-[var(--text-body)]">{desc}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features grid */}
-      <section className="py-20 px-4 bg-[var(--bg-warm)]">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-[var(--text-dark)] text-center mb-12">
-            Built for Meaningful Connections
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              {
-                icon: Sparkles,
-                title: "AI Match Explanations",
-                desc: "Understand why each person is suggested with AI-generated explanations based on Ikigai alignment.",
-              },
-              {
-                icon: MessageSquare,
-                title: "In-App Messaging",
-                desc: "Connect and communicate directly within the platform. No need for external tools.",
-              },
-              {
-                icon: Shield,
-                title: "Privacy Controls",
-                desc: "Control what's visible on your profile. Block users and manage discoverability.",
-              },
-              {
-                icon: Brain,
-                title: "Smart Criteria",
-                desc: "AI pre-fills and continuously updates your match criteria based on your profile.",
-              },
-            ].map(({ icon: Icon, title, desc }) => (
-              <Card key={title} variant="subtle" className="flex gap-4 hover:shadow-md transition-shadow">
-                <div className="w-10 h-10 rounded-xl bg-[var(--peach-light)] flex items-center justify-center shrink-0">
-                  <Icon className="w-5 h-5 text-[var(--orange-primary)]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[var(--text-dark)] mb-1">
-                    {title}
-                  </h3>
-                  <p className="text-sm text-[var(--text-body)]">{desc}</p>
-                </div>
-              </Card>
-            ))}
+      {/* FAQ */}
+      <section className="py-20 px-4">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-[var(--text-dark)] text-center mb-12">Questions?</h2>
+          <div className="glass-strong p-6">
+            <FAQItem q="How does the AI matching work?" a="We analyze your Ikigai profile, skills, interests, and intent to find people with complementary goals and overlapping strengths. Each match comes with a score and explanation." />
+            <FAQItem q="Is my data shared with other users?" a="You control exactly what's visible on your profile through granular privacy settings. Nothing is shared without your explicit consent." />
+            <FAQItem q="Is SuperNetwork free?" a="Yes! Core matching, messaging, and profile features are completely free. We may introduce premium features in the future." />
+            <FAQItem q="How is this different from LinkedIn?" a="LinkedIn is about broadcasting. SuperNetwork is about matching. We use AI to find the right people based on purpose alignment, not just job titles." />
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 bg-white">
+      <section className="py-20 px-4">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-[var(--text-dark)]">
-            Ready to Find Your Match?
-          </h2>
+          <h2 className="text-3xl font-bold text-[var(--text-dark)]">Ready to Find Your Match?</h2>
           <p className="text-[var(--text-body)] mt-4">
-            Join SuperNetworkAI and discover meaningful connections powered by your
-            unique purpose.
+            Join SuperNetwork and discover meaningful connections powered by your unique purpose.
           </p>
-          <Link
-            href="/register"
-            className="btn-primary px-8 py-3 text-base inline-flex items-center gap-2 mt-8"
-          >
+          <Link href="/register" className="btn-primary px-8 py-3.5 text-base inline-flex items-center gap-2 mt-8">
             Get Started Free
             <ArrowRight className="w-4 h-4" />
           </Link>
@@ -274,19 +235,15 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 border-t border-gray-100">
+      <footer className="py-8 px-4 border-t border-white/5">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] flex items-center justify-center">
-              <span className="text-white font-bold text-[10px]">SN</span>
+              <span className="text-white font-bold text-[10px]">S</span>
             </div>
-            <span className="text-sm text-[var(--text-muted)]">
-              SuperNetworkAI
-            </span>
+            <span className="text-sm text-[var(--text-muted)]">SuperNetwork</span>
           </div>
-          <p className="text-sm text-[var(--text-muted)]">
-            AI-Powered Networking Platform
-          </p>
+          <p className="text-sm text-[var(--text-muted)]">AI-Powered Networking Platform</p>
         </div>
       </footer>
     </div>
