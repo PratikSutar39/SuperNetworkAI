@@ -69,7 +69,7 @@ supabase/
 
 - Node.js 18+
 - A [Supabase](https://supabase.com) account (free tier works)
-- A [Together AI](https://together.xyz) API key
+- A [OpenRouter](https://openrouter.ai/api) API key
 
 ### Installation
 
