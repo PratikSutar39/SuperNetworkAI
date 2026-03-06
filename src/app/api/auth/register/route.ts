@@ -7,7 +7,13 @@ import { z } from "zod";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email"),
+  email: z
+    .string()
+    .email("Invalid email")
+    .refine(
+      (email) => email.endsWith("@gmail.com"),
+      "Please register with your Gmail address"
+    ),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 

@@ -17,6 +17,12 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    if (!email.endsWith("@gmail.com")) {
+      setError("Please register with your Gmail address");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -146,7 +152,7 @@ export default function RegisterPage() {
               id="email"
               label="Email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="you@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
