@@ -25,7 +25,7 @@ export async function sendVerificationEmail({
   const resend = getResend();
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
   const verifyUrl = `${baseUrl}/api/auth/verify?token=${token}`;
-  const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@supernetworkai.com";
+  const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 
   const { error } = await resend.emails.send({
     from: `SuperNetworkAI <${fromEmail}>`,
