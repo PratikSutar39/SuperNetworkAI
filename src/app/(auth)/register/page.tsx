@@ -1,20 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,23 +34,79 @@ export default function RegisterPage() {
         return;
       }
 
-      // Auto sign in after registration
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Account created but could not sign in. Please try logging in.");
-        setLoading(false);
-      } else {
-        router.push("/onboarding");
-      }
+      // Show "check your email" state
+      setEmailSent(true);
+      setLoading(false);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
+  }
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[var(--bg-warm)]">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] flex items-center justify-center mx-auto mb-4">
+              <span className="text-white font-bold text-lg">SN</span>
+            </div>
+          </div>
+
+          <Card variant="strong">
+            <div className="text-center py-4 space-y-4">
+              {/* Mail icon */}
+              <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mx-auto">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-[var(--orange-primary)]"
+                >
+                  <rect width="20" height="16" x="2" y="4" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+              </div>
+
+              <h2 className="text-xl font-bold text-[var(--text-dark)]">
+                Check your email
+              </h2>
+              <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                We&apos;ve sent a verification link to{" "}
+                <span className="font-medium text-[var(--text-dark)]">
+                  {email}
+                </span>
+                . Click the link in the email to verify your account and start
+                building your profile.
+              </p>
+
+              <div className="pt-2 space-y-3">
+                <p className="text-xs text-[var(--text-muted)]">
+                  The link will expire in 24 hours.
+                </p>
+                <Button
+                  type="button"
+                  variant="glass"
+                  size="sm"
+                  onClick={() => {
+                    setEmailSent(false);
+                    setLoading(false);
+                  }}
+                >
+                  Use a different email
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (

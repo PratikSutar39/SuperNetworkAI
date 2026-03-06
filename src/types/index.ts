@@ -135,3 +135,22 @@ export interface SearchFilters {
   availability?: string;
   query: string;
 }
+
+export interface PendingRegistration {
+  id: string;
+  email: string;
+  name: string;
+  password_hash: string;
+  verification_token: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface OnboardingProgress {
+  id: string;
+  user_id: string;
+  current_step: number;
+  form_data: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}

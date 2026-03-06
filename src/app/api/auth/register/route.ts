@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { getServiceSupabase } from "@/lib/supabase";
+import { sendVerificationEmail } from "@/lib/email";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -24,7 +26,7 @@ export async function POST(req: NextRequest) {
     const { name, email, password } = validation.data;
     const supabase = getServiceSupabase();
 
-    // Check if user exists
+    // Check if user already exists (fully verified)
     const { data: existing } = await supabase
       .from("users")
       .select("id")
@@ -39,32 +41,46 @@ export async function POST(req: NextRequest) {
     }
 
     const password_hash = await bcrypt.hash(password, 12);
+    const verification_token = crypto.randomBytes(32).toString("hex");
+    const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
 
-    // Create user
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .insert({ name, email, password_hash })
-      .select("id")
-      .single();
+    // Delete any existing pending registration for this email
+    await supabase
+      .from("pending_registrations")
+      .delete()
+      .eq("email", email);
 
-    if (userError) {
+    // Create pending registration
+    const { error: insertError } = await supabase
+      .from("pending_registrations")
+      .insert({
+        email,
+        name,
+        password_hash,
+        verification_token,
+        expires_at,
+      });
+
+    if (insertError) {
+      console.error("Failed to create pending registration:", insertError);
       return NextResponse.json(
-        { error: "Failed to create account" },
+        { error: "Failed to initiate registration" },
         { status: 500 }
       );
     }
 
-    // Create empty profile
-    await supabase.from("profiles").insert({ user_id: user.id });
-
-    // Create default visibility settings
-    await supabase.from("visibility_settings").insert({ user_id: user.id });
+    // Send verification email via Resend
+    await sendVerificationEmail({ email, name, token: verification_token });
 
     return NextResponse.json(
-      { message: "Account created successfully", userId: user.id },
+      {
+        message: "Verification email sent. Please check your inbox.",
+        requiresVerification: true,
+      },
       { status: 201 }
     );
-  } catch {
+  } catch (err) {
+    console.error("Registration error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

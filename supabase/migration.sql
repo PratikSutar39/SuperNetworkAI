@@ -104,6 +104,27 @@ CREATE TABLE IF NOT EXISTS visibility_settings (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Pending registrations table (email verification before account creation)
+CREATE TABLE IF NOT EXISTS pending_registrations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  verification_token TEXT UNIQUE NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Onboarding progress table (saves user progress across ikigai steps)
+CREATE TABLE IF NOT EXISTS onboarding_progress (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  current_step INTEGER NOT NULL DEFAULT 1,
+  form_data JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_intent ON profiles(intent);
@@ -117,6 +138,9 @@ CREATE INDEX IF NOT EXISTS idx_messages_recipient ON messages(recipient_id);
 CREATE INDEX IF NOT EXISTS idx_messages_read ON messages(read);
 CREATE INDEX IF NOT EXISTS idx_blocked_users_blocker ON blocked_users(blocker_id);
 CREATE INDEX IF NOT EXISTS idx_blocked_users_blocked ON blocked_users(blocked_id);
+CREATE INDEX IF NOT EXISTS idx_pending_registrations_token ON pending_registrations(verification_token);
+CREATE INDEX IF NOT EXISTS idx_pending_registrations_email ON pending_registrations(email);
+CREATE INDEX IF NOT EXISTS idx_onboarding_progress_user ON onboarding_progress(user_id);
 
 -- Updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -141,6 +165,9 @@ CREATE TRIGGER set_connections_updated_at BEFORE UPDATE ON connections
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 CREATE TRIGGER set_visibility_settings_updated_at BEFORE UPDATE ON visibility_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER set_onboarding_progress_updated_at BEFORE UPDATE ON onboarding_progress
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- Migration: Fix conversation_id type from UUID to TEXT

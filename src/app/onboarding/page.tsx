@@ -14,28 +14,31 @@ import Badge from "@/components/ui/Badge";
 // ---------------------------------------------------------------------------
 
 interface OnboardingData {
-  // Step 1: Ikigai
+  // Step 1: What you love
   ikigai_love: string;
+  // Step 2: What you're good at
   ikigai_good_at: string;
+  // Step 3: What the world needs
   ikigai_world_needs: string;
+  // Step 4: What you can be paid for
   ikigai_paid_for: string;
-  // Step 2: Skills & Interests
+  // Step 5: Skills & Interests
   skills: string[];
   interests: string[];
+  // Step 6: Intent & Working Preferences
   intent: "" | "Cofounder" | "Teammate" | "Client" | "Mentor";
-  // Step 3: Portfolio & CV
+  availability: "" | "Full-time" | "Part-time" | "Freelance" | "Flexible";
+  working_style: "" | "Remote" | "Hybrid" | "In-person" | "Flexible";
+  // Step 7: Portfolio & Bio
   bio: string;
   headline: string;
   portfolio_url: string;
   cv_text: string;
-  // Step 4: Social Profiles
+  // Step 8: Social Profiles
   linkedin_url: string;
   github_url: string;
   twitter_url: string;
   website_url: string;
-  // Step 5: Working Preferences
-  availability: "" | "Full-time" | "Part-time" | "Freelance" | "Flexible";
-  working_style: "" | "Remote" | "Hybrid" | "In-person" | "Flexible";
 }
 
 const INITIAL_DATA: OnboardingData = {
@@ -59,35 +62,31 @@ const INITIAL_DATA: OnboardingData = {
 };
 
 const STEP_TITLES = [
-  "Ikigai Discovery",
+  "What You Love",
+  "What You're Good At",
+  "What the World Needs",
+  "What You Can Be Paid For",
   "Skills & Interests",
-  "Portfolio & CV",
+  "Intent & Preferences",
+  "Portfolio & Bio",
   "Social Profiles",
-  "Working Preferences",
 ];
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 8;
 
-const INTENT_OPTIONS: Array<OnboardingData["intent"]> = [
+const INTENT_OPTIONS: Array<NonNullable<OnboardingData["intent"]>> = [
   "Cofounder",
   "Teammate",
   "Client",
   "Mentor",
 ];
 
-const AVAILABILITY_OPTIONS: Array<NonNullable<OnboardingData["availability"]>> = [
-  "Full-time",
-  "Part-time",
-  "Freelance",
-  "Flexible",
-];
+const AVAILABILITY_OPTIONS: Array<NonNullable<OnboardingData["availability"]>> =
+  ["Full-time", "Part-time", "Freelance", "Flexible"];
 
-const WORKING_STYLE_OPTIONS: Array<NonNullable<OnboardingData["working_style"]>> = [
-  "Remote",
-  "Hybrid",
-  "In-person",
-  "Flexible",
-];
+const WORKING_STYLE_OPTIONS: Array<
+  NonNullable<OnboardingData["working_style"]>
+> = ["Remote", "Hybrid", "In-person", "Flexible"];
 
 // ---------------------------------------------------------------------------
 // Tag Input Component
@@ -204,7 +203,7 @@ function IkigaiDiagram({ data }: { data: OnboardingData }) {
   ];
 
   return (
-    <div className="relative w-full max-w-[280px] mx-auto aspect-square select-none">
+    <div className="relative w-full max-w-[220px] mx-auto aspect-square select-none">
       {circles.map((c) => (
         <div
           key={c.label}
@@ -217,9 +216,7 @@ function IkigaiDiagram({ data }: { data: OnboardingData }) {
             border: c.active
               ? "2px solid rgba(255,255,255,0.6)"
               : "1px solid rgba(255,255,255,0.3)",
-            boxShadow: c.active
-              ? "0 4px 20px rgba(0,0,0,0.08)"
-              : "none",
+            boxShadow: c.active ? "0 4px 20px rgba(0,0,0,0.08)" : "none",
           }}
         >
           <span className="text-xs font-semibold text-white drop-shadow-sm text-center leading-tight px-2">
@@ -227,7 +224,6 @@ function IkigaiDiagram({ data }: { data: OnboardingData }) {
           </span>
         </div>
       ))}
-      {/* Center label */}
       <div
         className="absolute flex items-center justify-center"
         style={{
@@ -288,7 +284,7 @@ function ProgressBar({ step }: { step: number }) {
 // ---------------------------------------------------------------------------
 
 function isValidUrl(value: string): boolean {
-  if (!value) return true; // empty is ok (optional)
+  if (!value) return true;
   try {
     new URL(value);
     return true;
@@ -297,35 +293,47 @@ function isValidUrl(value: string): boolean {
   }
 }
 
-function validateStep(step: number, data: OnboardingData): Record<string, string> {
+function validateStep(
+  step: number,
+  data: OnboardingData
+): Record<string, string> {
   const errors: Record<string, string> = {};
 
   switch (step) {
     case 1:
       if (!data.ikigai_love.trim())
         errors.ikigai_love = "Please share what you love doing.";
+      break;
+    case 2:
       if (!data.ikigai_good_at.trim())
         errors.ikigai_good_at = "Please share what you are good at.";
+      break;
+    case 3:
       if (!data.ikigai_world_needs.trim())
         errors.ikigai_world_needs = "Please share what the world needs.";
+      break;
+    case 4:
       if (!data.ikigai_paid_for.trim())
         errors.ikigai_paid_for = "Please share what you can be paid for.";
       break;
-    case 2:
+    case 5:
       if (data.skills.length === 0)
         errors.skills = "Add at least one skill.";
-      if (!data.intent)
-        errors.intent = "Please select your intent.";
       break;
-    case 3:
-      if (!data.bio.trim())
-        errors.bio = "A short bio is required.";
-      if (!data.headline.trim())
-        errors.headline = "A headline is required.";
+    case 6:
+      if (!data.intent) errors.intent = "Please select your intent.";
+      if (!data.availability)
+        errors.availability = "Please select your availability.";
+      if (!data.working_style)
+        errors.working_style = "Please select your working style.";
+      break;
+    case 7:
+      if (!data.bio.trim()) errors.bio = "A short bio is required.";
+      if (!data.headline.trim()) errors.headline = "A headline is required.";
       if (data.portfolio_url && !isValidUrl(data.portfolio_url))
         errors.portfolio_url = "Please enter a valid URL.";
       break;
-    case 4:
+    case 8:
       if (data.linkedin_url && !isValidUrl(data.linkedin_url))
         errors.linkedin_url = "Please enter a valid URL.";
       if (data.github_url && !isValidUrl(data.github_url))
@@ -335,22 +343,16 @@ function validateStep(step: number, data: OnboardingData): Record<string, string
       if (data.website_url && !isValidUrl(data.website_url))
         errors.website_url = "Please enter a valid URL.";
       break;
-    case 5:
-      if (!data.availability)
-        errors.availability = "Please select your availability.";
-      if (!data.working_style)
-        errors.working_style = "Please select your working style.";
-      break;
   }
 
   return errors;
 }
 
 // ---------------------------------------------------------------------------
-// Step Renderers
+// Step Components
 // ---------------------------------------------------------------------------
 
-function StepIkigai({
+function StepLove({
   data,
   onChange,
   errors,
@@ -363,55 +365,133 @@ function StepIkigai({
     <div className="space-y-6">
       <div className="text-center space-y-1">
         <h2 className="text-xl font-bold text-[var(--text-dark)]">
-          Discover Your Ikigai
+          What Do You Love?
         </h2>
         <p className="text-sm text-[var(--text-muted)]">
-          Ikigai is the Japanese concept of finding purpose at the intersection
-          of what you love, what you are good at, what the world needs, and what
-          you can be paid for.
+          The first pillar of Ikigai: your passion. What activities make you
+          lose track of time? What would you do even if you weren&apos;t paid?
         </p>
       </div>
 
       <IkigaiDiagram data={data} />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Textarea
-          id="ikigai_love"
-          label="What do you love?"
-          placeholder="I'm passionate about building communities, solving puzzles, creating art..."
-          value={data.ikigai_love}
-          onChange={(e) => onChange({ ikigai_love: e.target.value })}
-          error={errors.ikigai_love}
-          rows={3}
-        />
-        <Textarea
-          id="ikigai_good_at"
-          label="What are you good at?"
-          placeholder="Full-stack development, design thinking, strategic planning..."
-          value={data.ikigai_good_at}
-          onChange={(e) => onChange({ ikigai_good_at: e.target.value })}
-          error={errors.ikigai_good_at}
-          rows={3}
-        />
-        <Textarea
-          id="ikigai_world_needs"
-          label="What does the world need?"
-          placeholder="Accessible education, sustainable technology, mental health support..."
-          value={data.ikigai_world_needs}
-          onChange={(e) => onChange({ ikigai_world_needs: e.target.value })}
-          error={errors.ikigai_world_needs}
-          rows={3}
-        />
-        <Textarea
-          id="ikigai_paid_for"
-          label="What can you be paid for?"
-          placeholder="Software engineering, consulting, content creation..."
-          value={data.ikigai_paid_for}
-          onChange={(e) => onChange({ ikigai_paid_for: e.target.value })}
-          error={errors.ikigai_paid_for}
-          rows={3}
-        />
+      <Textarea
+        id="ikigai_love"
+        label="What do you love doing?"
+        placeholder="I'm passionate about building communities, solving puzzles, creating art, exploring new technologies..."
+        value={data.ikigai_love}
+        onChange={(e) => onChange({ ikigai_love: e.target.value })}
+        error={errors.ikigai_love}
+        rows={5}
+      />
+    </div>
+  );
+}
+
+function StepGoodAt({
+  data,
+  onChange,
+  errors,
+}: {
+  data: OnboardingData;
+  onChange: (patch: Partial<OnboardingData>) => void;
+  errors: Record<string, string>;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center space-y-1">
+        <h2 className="text-xl font-bold text-[var(--text-dark)]">
+          What Are You Good At?
+        </h2>
+        <p className="text-sm text-[var(--text-muted)]">
+          The second pillar: your vocation. What skills come naturally to you?
+          What do others come to you for help with?
+        </p>
       </div>
+
+      <IkigaiDiagram data={data} />
+
+      <Textarea
+        id="ikigai_good_at"
+        label="What are you good at?"
+        placeholder="Full-stack development, design thinking, strategic planning, mentoring others..."
+        value={data.ikigai_good_at}
+        onChange={(e) => onChange({ ikigai_good_at: e.target.value })}
+        error={errors.ikigai_good_at}
+        rows={5}
+      />
+    </div>
+  );
+}
+
+function StepWorldNeeds({
+  data,
+  onChange,
+  errors,
+}: {
+  data: OnboardingData;
+  onChange: (patch: Partial<OnboardingData>) => void;
+  errors: Record<string, string>;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center space-y-1">
+        <h2 className="text-xl font-bold text-[var(--text-dark)]">
+          What Does the World Need?
+        </h2>
+        <p className="text-sm text-[var(--text-muted)]">
+          The third pillar: your mission. What problems do you want to solve?
+          What impact do you want to make?
+        </p>
+      </div>
+
+      <IkigaiDiagram data={data} />
+
+      <Textarea
+        id="ikigai_world_needs"
+        label="What does the world need?"
+        placeholder="Accessible education, sustainable technology, mental health support, better collaboration tools..."
+        value={data.ikigai_world_needs}
+        onChange={(e) => onChange({ ikigai_world_needs: e.target.value })}
+        error={errors.ikigai_world_needs}
+        rows={5}
+      />
+    </div>
+  );
+}
+
+function StepPaidFor({
+  data,
+  onChange,
+  errors,
+}: {
+  data: OnboardingData;
+  onChange: (patch: Partial<OnboardingData>) => void;
+  errors: Record<string, string>;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center space-y-1">
+        <h2 className="text-xl font-bold text-[var(--text-dark)]">
+          What Can You Be Paid For?
+        </h2>
+        <p className="text-sm text-[var(--text-muted)]">
+          The fourth pillar: your profession. What services or products can you
+          offer that people are willing to pay for?
+        </p>
+      </div>
+
+      <IkigaiDiagram data={data} />
+
+      <Textarea
+        id="ikigai_paid_for"
+        label="What can you be paid for?"
+        placeholder="Software engineering, consulting, content creation, product management, data analysis..."
+        value={data.ikigai_paid_for}
+        onChange={(e) => onChange({ ikigai_paid_for: e.target.value })}
+        error={errors.ikigai_paid_for}
+        rows={5}
+      />
     </div>
   );
 }
@@ -453,7 +533,7 @@ function StepSkills({
         </div>
 
         <TagInput
-          label="Interests"
+          label="Interests (optional)"
           tags={data.interests}
           onAdd={(tag) => onChange({ interests: [...data.interests, tag] })}
           onRemove={(i) =>
@@ -463,7 +543,33 @@ function StepSkills({
           }
           placeholder="Type an interest and press Enter"
         />
+      </div>
+    </div>
+  );
+}
 
+function StepPreferences({
+  data,
+  onChange,
+  errors,
+}: {
+  data: OnboardingData;
+  onChange: (patch: Partial<OnboardingData>) => void;
+  errors: Record<string, string>;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center space-y-1">
+        <h2 className="text-xl font-bold text-[var(--text-dark)]">
+          Intent & Preferences
+        </h2>
+        <p className="text-sm text-[var(--text-muted)]">
+          What are you looking for, and how do you prefer to work?
+        </p>
+      </div>
+
+      <div className="space-y-5">
+        {/* Intent */}
         <div className="space-y-1.5">
           <label className="block text-sm font-medium text-[var(--text-dark)]">
             I am looking to be a...
@@ -488,6 +594,60 @@ function StepSkills({
             <p className="text-xs text-red-500 mt-1">{errors.intent}</p>
           )}
         </div>
+
+        {/* Availability */}
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-[var(--text-dark)]">
+            Availability
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {AVAILABILITY_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => onChange({ availability: option })}
+                className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-[var(--orange-primary)] focus:ring-offset-2 ${
+                  data.availability === option
+                    ? "bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] text-white border-transparent shadow-md"
+                    : "glass-input text-[var(--text-body)] hover:border-[var(--orange-primary)]"
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          {errors.availability && (
+            <p className="text-xs text-red-500 mt-1">{errors.availability}</p>
+          )}
+        </div>
+
+        {/* Working Style */}
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-[var(--text-dark)]">
+            Working Style
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {WORKING_STYLE_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => onChange({ working_style: option })}
+                className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-[var(--orange-primary)] focus:ring-offset-2 ${
+                  data.working_style === option
+                    ? "bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] text-white border-transparent shadow-md"
+                    : "glass-input text-[var(--text-body)] hover:border-[var(--orange-primary)]"
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          {errors.working_style && (
+            <p className="text-xs text-red-500 mt-1">
+              {errors.working_style}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -506,7 +666,7 @@ function StepPortfolio({
     <div className="space-y-6">
       <div className="text-center space-y-1">
         <h2 className="text-xl font-bold text-[var(--text-dark)]">
-          Portfolio & CV
+          Portfolio & Bio
         </h2>
         <p className="text-sm text-[var(--text-muted)]">
           Share your story so the right people can find you.
@@ -535,7 +695,7 @@ function StepPortfolio({
 
         <Input
           id="portfolio_url"
-          label="Portfolio URL"
+          label="Portfolio URL (optional)"
           type="url"
           placeholder="https://your-portfolio.com"
           value={data.portfolio_url}
@@ -545,13 +705,12 @@ function StepPortfolio({
 
         <Textarea
           id="cv_text"
-          label="CV / Portfolio Text"
+          label="CV / Portfolio Text (optional)"
           placeholder="Paste your CV, resume, or a detailed description of your experience here..."
           value={data.cv_text}
           onChange={(e) => onChange({ cv_text: e.target.value })}
           error={errors.cv_text}
-          rows={8}
-          className="min-h-[160px]"
+          rows={6}
         />
       </div>
     </div>
@@ -621,84 +780,6 @@ function StepSocials({
   );
 }
 
-function StepPreferences({
-  data,
-  onChange,
-  errors,
-}: {
-  data: OnboardingData;
-  onChange: (patch: Partial<OnboardingData>) => void;
-  errors: Record<string, string>;
-}) {
-  return (
-    <div className="space-y-6">
-      <div className="text-center space-y-1">
-        <h2 className="text-xl font-bold text-[var(--text-dark)]">
-          Working Preferences
-        </h2>
-        <p className="text-sm text-[var(--text-muted)]">
-          Let us know how you prefer to work so we can match you with
-          like-minded people.
-        </p>
-      </div>
-
-      <div className="space-y-5">
-        {/* Availability */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-[var(--text-dark)]">
-            Availability
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            {AVAILABILITY_OPTIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => onChange({ availability: option })}
-                className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-[var(--orange-primary)] focus:ring-offset-2 ${
-                  data.availability === option
-                    ? "bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] text-white border-transparent shadow-md"
-                    : "glass-input text-[var(--text-body)] hover:border-[var(--orange-primary)]"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-          {errors.availability && (
-            <p className="text-xs text-red-500 mt-1">{errors.availability}</p>
-          )}
-        </div>
-
-        {/* Working Style */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-[var(--text-dark)]">
-            Working Style
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            {WORKING_STYLE_OPTIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => onChange({ working_style: option })}
-                className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-[var(--orange-primary)] focus:ring-offset-2 ${
-                  data.working_style === option
-                    ? "bg-gradient-to-br from-[var(--orange-primary)] to-[var(--orange-deep)] text-white border-transparent shadow-md"
-                    : "glass-input text-[var(--text-body)] hover:border-[var(--orange-primary)]"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-          {errors.working_style && (
-            <p className="text-xs text-red-500 mt-1">{errors.working_style}</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Main Onboarding Page
 // ---------------------------------------------------------------------------
@@ -712,6 +793,7 @@ export default function OnboardingPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [progressLoaded, setProgressLoaded] = useState(false);
 
   // Redirect unauthenticated users to login
   useEffect(() => {
@@ -720,9 +802,32 @@ export default function OnboardingPage() {
     }
   }, [status, router]);
 
+  // Load saved progress on mount
+  useEffect(() => {
+    if (status !== "authenticated" || progressLoaded) return;
+
+    async function loadProgress() {
+      try {
+        const res = await fetch("/api/onboarding/progress");
+        if (res.ok) {
+          const saved = await res.json();
+          if (saved.form_data && Object.keys(saved.form_data).length > 0) {
+            setData((prev) => ({ ...prev, ...saved.form_data }));
+            setStep(saved.current_step || 1);
+          }
+        }
+      } catch {
+        // Ignore - start fresh
+      } finally {
+        setProgressLoaded(true);
+      }
+    }
+
+    loadProgress();
+  }, [status, progressLoaded]);
+
   const updateData = useCallback((patch: Partial<OnboardingData>) => {
     setData((prev) => ({ ...prev, ...patch }));
-    // Clear field-level errors for changed fields
     setErrors((prev) => {
       const next = { ...prev };
       for (const key of Object.keys(patch)) {
@@ -732,6 +837,23 @@ export default function OnboardingPage() {
     });
   }, []);
 
+  // Save progress to server (fire-and-forget)
+  const saveProgress = useCallback(
+    (nextStep: number, currentData: OnboardingData) => {
+      fetch("/api/onboarding/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_step: nextStep,
+          form_data: currentData,
+        }),
+      }).catch(() => {
+        // Silently fail - progress saving is best-effort
+      });
+    },
+    []
+  );
+
   function handleNext() {
     const stepErrors = validateStep(step, data);
     if (Object.keys(stepErrors).length > 0) {
@@ -739,12 +861,16 @@ export default function OnboardingPage() {
       return;
     }
     setErrors({});
-    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    const nextStep = Math.min(step + 1, TOTAL_STEPS);
+    setStep(nextStep);
+    saveProgress(nextStep, data);
   }
 
   function handleBack() {
     setErrors({});
-    setStep((s) => Math.max(s - 1, 1));
+    const prevStep = Math.max(step - 1, 1);
+    setStep(prevStep);
+    saveProgress(prevStep, data);
   }
 
   async function handleSubmit() {
@@ -766,15 +892,15 @@ export default function OnboardingPage() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(
-          body.error || `Submission failed (${res.status})`
-        );
+        throw new Error(body.error || `Submission failed (${res.status})`);
       }
 
       router.push("/dashboard");
     } catch (err) {
       setSubmitError(
-        err instanceof Error ? err.message : "Something went wrong. Please try again."
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
       );
       setSubmitting(false);
     }
@@ -784,7 +910,7 @@ export default function OnboardingPage() {
   // Loading / Auth guard
   // -----------------------------------------------------------------------
 
-  if (status === "loading") {
+  if (status === "loading" || (status === "authenticated" && !progressLoaded)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg-warm)]">
         <div className="flex flex-col items-center gap-3">
@@ -837,7 +963,7 @@ export default function OnboardingPage() {
             {session?.user?.name
               ? `Welcome, ${session.user.name}! `
               : ""}
-            Let&apos;s set up your profile so we can find your perfect match.
+            Let&apos;s discover your Ikigai and find your perfect match.
           </p>
         </div>
 
@@ -853,23 +979,28 @@ export default function OnboardingPage() {
           )}
 
           {step === 1 && (
-            <StepIkigai data={data} onChange={updateData} errors={errors} />
+            <StepLove data={data} onChange={updateData} errors={errors} />
           )}
           {step === 2 && (
-            <StepSkills data={data} onChange={updateData} errors={errors} />
+            <StepGoodAt data={data} onChange={updateData} errors={errors} />
           )}
           {step === 3 && (
-            <StepPortfolio data={data} onChange={updateData} errors={errors} />
+            <StepWorldNeeds data={data} onChange={updateData} errors={errors} />
           )}
           {step === 4 && (
-            <StepSocials data={data} onChange={updateData} errors={errors} />
+            <StepPaidFor data={data} onChange={updateData} errors={errors} />
           )}
           {step === 5 && (
-            <StepPreferences
-              data={data}
-              onChange={updateData}
-              errors={errors}
-            />
+            <StepSkills data={data} onChange={updateData} errors={errors} />
+          )}
+          {step === 6 && (
+            <StepPreferences data={data} onChange={updateData} errors={errors} />
+          )}
+          {step === 7 && (
+            <StepPortfolio data={data} onChange={updateData} errors={errors} />
+          )}
+          {step === 8 && (
+            <StepSocials data={data} onChange={updateData} errors={errors} />
           )}
 
           {/* Navigation Buttons */}
@@ -888,7 +1019,12 @@ export default function OnboardingPage() {
             )}
 
             {step < TOTAL_STEPS ? (
-              <Button type="button" variant="primary" size="lg" onClick={handleNext}>
+              <Button
+                type="button"
+                variant="primary"
+                size="lg"
+                onClick={handleNext}
+              >
                 Continue
               </Button>
             ) : (
@@ -912,15 +1048,16 @@ export default function OnboardingPage() {
               key={n}
               type="button"
               onClick={() => {
-                // Allow navigating back freely, forward only if current step validates
                 if (n < step) {
                   setErrors({});
                   setStep(n);
+                  saveProgress(n, data);
                 } else if (n > step) {
                   const stepErrors = validateStep(step, data);
                   if (Object.keys(stepErrors).length === 0) {
                     setErrors({});
                     setStep(n);
+                    saveProgress(n, data);
                   } else {
                     setErrors(stepErrors);
                   }
